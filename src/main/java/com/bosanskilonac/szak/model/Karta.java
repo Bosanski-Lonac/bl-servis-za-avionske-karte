@@ -1,4 +1,4 @@
-package model;
+package com.bosanskilonac.szak.model;
 
 import java.time.Instant;
 
