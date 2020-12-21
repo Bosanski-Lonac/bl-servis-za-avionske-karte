@@ -1,9 +1,11 @@
 package com.bosanskilonac.szak.model;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -22,6 +24,8 @@ public class Karta {
 	@NotNull
 	@Column(name="datum_kupovine")
 	private Date datumKupovine;
+	@Positive
+	private BigDecimal cena;
 	
 	public Long getId() {
 		return id;
@@ -46,6 +50,12 @@ public class Karta {
 	}
 	public void setDatumKupovine(Date datumKupovine) {
 		this.datumKupovine = datumKupovine;
+	}
+	public BigDecimal getCena() {
+		return cena;
+	}
+	public void setCena(BigDecimal cena) {
+		this.cena = cena;
 	}
 	
 }
