@@ -1,10 +1,9 @@
 package com.bosanskilonac.szak.service.implementation;
 
-import java.math.BigDecimal;
-
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +16,6 @@ import com.bosanskilonac.szak.model.Karta;
 import com.bosanskilonac.szak.repository.KartaRepository;
 import com.bosanskilonac.szak.service.KartaService;
 
-import dto.DiscountDto;
 import dto.KartaCUDto;
 import dto.KartaDto;
 import dto.LetDto;
@@ -56,14 +54,18 @@ public class KartaServiceImpl implements KartaService {
 		if(letDto.getKapacitet() <= kartaRepository.countByLetId(letDto.getId())) {
 			throw new InUseException("Nema dovoljno mesta na letu.");
 		}
-		// get discount from user service
-		ResponseEntity<DiscountDto> discountResponseEntity = serviceCommunicationRestTemplate.exchange(BLURL.KS_URL
-				+ BLURL.KORISNIK_URL + BLURL.DISCOUNT_URL + "/" + korisnikId.toString(), HttpMethod.GET, null, DiscountDto.class);
-		DiscountDto discountDto = discountResponseEntity.getBody();
-		Karta karta = kartaMapper.kartaCreateDtoToKarta(korisnikId, kartaCreateDto);
-		karta.setCena(letDto.getCena().divide(BigDecimal.valueOf(100)).
-				multiply(BigDecimal.valueOf(100 - discountDto.getDiscount())));
-		// azuriraj milje
+		// get discount from user service and process payment there
+		kartaCreateDto.setCena(letDto.getCena());
+		HttpEntity<KartaCUDto> request = new HttpEntity<>(kartaCreateDto);
+		try {
+			ResponseEntity<KartaCUDto> kartaResponseEntity = serviceCommunicationRestTemplate.exchange(BLURL.KS_URL
+					+ BLURL.KORISNIK_URL + "/" + korisnikId.toString() + BLURL.CC_URL + BLURL.RESERVE_URL, HttpMethod.POST, request, KartaCUDto.class);
+			kartaCreateDto = kartaResponseEntity.getBody();
+		} catch (HttpClientErrorException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND))
+                throw new NotFoundException("Kreditna kartica nije nađena.");
+        }
+		Karta karta = kartaMapper.kartaCreateDtoToKarta(kartaCreateDto);
 		karta = kartaRepository.save(karta);
 		KartaDto kartaDto = kartaMapper.kartaToKartaDto(karta);
 		return kartaDto;
