@@ -54,7 +54,8 @@ public class KartaServiceImpl implements KartaService {
 		if(letDto.getKapacitet() <= kartaRepository.countByLetId(letDto.getId())) {
 			throw new InUseException("Nema dovoljno mesta na letu.");
 		}
-		// get discount from user service and process payment there
+		kartaCreateDto.setMilje(letDto.getMilje());
+		// get discount, process payment and add miles to user
 		kartaCreateDto.setCena(letDto.getCena());
 		HttpEntity<KartaCUDto> request = new HttpEntity<>(kartaCreateDto);
 		try {
