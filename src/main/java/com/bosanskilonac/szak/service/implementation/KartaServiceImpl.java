@@ -43,20 +43,16 @@ public class KartaServiceImpl implements KartaService {
 	private JmsTemplate jmsTemplate;
 	private ObjectMapper objectMapper;
 
-	public KartaServiceImpl(KartaRepository kartaRepository, KartaMapper kartaMapper,
-			RestTemplate serviceCommunicationRestTemplate, JmsTemplate jmsTemplate, ObjectMapper objectMapper) {
+	public KartaServiceImpl(KartaRepository kartaRepository,
+			KartaMapper kartaMapper,
+			RestTemplate serviceCommunicationRestTemplate,
+			JmsTemplate jmsTemplate,
+			ObjectMapper objectMapper) {
 		this.kartaRepository = kartaRepository;
 		this.kartaMapper = kartaMapper;
 		this.serviceCommunicationRestTemplate = serviceCommunicationRestTemplate;
 		this.jmsTemplate = jmsTemplate;
 		this.objectMapper = objectMapper;
-	}
-
-	public KartaServiceImpl(KartaRepository kartaRepository, KartaMapper kartaMapper,
-			RestTemplate serviceCommunicationRestTemplate) {
-		this.kartaRepository = kartaRepository;
-		this.kartaMapper = kartaMapper;
-		this.serviceCommunicationRestTemplate = serviceCommunicationRestTemplate;
 	}
 
 	@Override
