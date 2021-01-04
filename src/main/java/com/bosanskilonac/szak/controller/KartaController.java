@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bosanskilonac.szak.service.KartaService;
 
-import dto.KartaCUDto;
+import dto.KartaReserveDto;
 import dto.KartaDto;
 import enums.Role;
 import io.swagger.annotations.ApiOperation;
@@ -36,7 +36,7 @@ public class KartaController {
 	@PostMapping("/{id}")
 	@CheckSecurity(roles = {Role.ROLE_USER})
 	public ResponseEntity<KartaDto> reserve(@RequestHeader("Authorization") String authorization, @PathVariable("id") Long id,
-			@RequestBody @Valid KartaCUDto kartaCreateDto) {
+			@RequestBody @Valid KartaReserveDto kartaCreateDto) {
 		return new ResponseEntity<>(kartaService.reserve(id, kartaCreateDto), HttpStatus.CREATED);
 	}
 	
@@ -60,14 +60,6 @@ public class KartaController {
 	@CheckSecurity(roles = {Role.ROLE_USER}, checkOwnership = false)
 	public ResponseEntity<?> delete(@RequestHeader("Authorization") String authorization, @PathVariable("kartaId") Long kartaId) {
 		kartaService.deleteById(kartaId);
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
-	
-	@ApiOperation(value = "Brisanje karata vezanih za let")
-	@DeleteMapping("/let")
-	@CheckSecurity(roles = {Role.ROLE_ADMIN}, checkOwnership = false)
-	public ResponseEntity<?> deleteLet(@RequestHeader("Authorization") String authorization, @RequestParam(name = "id") Long letId) {
-		kartaService.deleteByLetId(letId);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 }

@@ -26,7 +26,7 @@ public class ServiceCommunicationClientConfiguration {
 		HttpEntity<TokenRequestDto> requestLogin = new HttpEntity<>(tokenRequest);
 		//when
 		ResponseEntity<TokenResponseDto> response = restTemplate
-                .exchange(BLURL.KS_URL + BLURL.ADMIN_URL, HttpMethod.POST, requestLogin, TokenResponseDto.class);
+                .exchange(BLURL.getAdminURL(), HttpMethod.POST, requestLogin, TokenResponseDto.class);
 		//then
         if(response.getStatusCode().equals(HttpStatus.OK)) {
         	TokenInterceptor tokenInterceptor = new TokenInterceptor(response.getBody().getToken());

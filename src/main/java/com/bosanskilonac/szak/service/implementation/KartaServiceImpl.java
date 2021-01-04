@@ -1,5 +1,8 @@
 package com.bosanskilonac.szak.service.implementation;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -7,6 +10,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -15,10 +19,15 @@ import com.bosanskilonac.szak.mapper.KartaMapper;
 import com.bosanskilonac.szak.model.Karta;
 import com.bosanskilonac.szak.repository.KartaRepository;
 import com.bosanskilonac.szak.service.KartaService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import dto.KartaCUDto;
+import dto.KartaReserveDto;
+import dto.KartaCreateDto;
 import dto.KartaDto;
+import dto.KartaKSDto;
 import dto.LetDto;
+import dto.PovracajNovcaDto;
 import exceptions.CustomException;
 import exceptions.InUseException;
 import exceptions.NotFoundException;
@@ -31,6 +40,17 @@ public class KartaServiceImpl implements KartaService {
 	private KartaRepository kartaRepository;
 	private KartaMapper kartaMapper;
 	private RestTemplate serviceCommunicationRestTemplate;
+	private JmsTemplate jmsTemplate;
+	private ObjectMapper objectMapper;
+
+	public KartaServiceImpl(KartaRepository kartaRepository, KartaMapper kartaMapper,
+			RestTemplate serviceCommunicationRestTemplate, JmsTemplate jmsTemplate, ObjectMapper objectMapper) {
+		this.kartaRepository = kartaRepository;
+		this.kartaMapper = kartaMapper;
+		this.serviceCommunicationRestTemplate = serviceCommunicationRestTemplate;
+		this.jmsTemplate = jmsTemplate;
+		this.objectMapper = objectMapper;
+	}
 
 	public KartaServiceImpl(KartaRepository kartaRepository, KartaMapper kartaMapper,
 			RestTemplate serviceCommunicationRestTemplate) {
@@ -40,12 +60,12 @@ public class KartaServiceImpl implements KartaService {
 	}
 
 	@Override
-	public KartaDto reserve(Long korisnikId, KartaCUDto kartaCreateDto) throws CustomException {
+	public KartaDto reserve(Long korisnikId, KartaReserveDto kartaReserveDto) throws CustomException {
 		// get flight from flight service
 		LetDto letDto = null;
 		try {
-			ResponseEntity<LetDto> letDtoResponseEntity = serviceCommunicationRestTemplate.exchange(BLURL.SZL_URL
-					+ BLURL.LET_URL + "/" + kartaCreateDto.getLetId(), HttpMethod.GET, null, LetDto.class);
+			ResponseEntity<LetDto> letDtoResponseEntity = serviceCommunicationRestTemplate.exchange(BLURL.getLetURL(kartaReserveDto.getLetId()), 
+					HttpMethod.GET, null, LetDto.class);
 			letDto = letDtoResponseEntity.getBody();
 		} catch (HttpClientErrorException e) {
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND))
@@ -54,19 +74,20 @@ public class KartaServiceImpl implements KartaService {
 		if(letDto.getKapacitet() <= kartaRepository.countByLetId(letDto.getId())) {
 			throw new InUseException("Nema dovoljno mesta na letu.");
 		}
-		kartaCreateDto.setMilje(letDto.getMilje());
+		
+		KartaKSDto kartaKSDto = kartaMapper.kartaReserveDtoToKartaKSDto(kartaReserveDto, letDto);
+		KartaCreateDto kartaCreateDto = null;
 		// get discount, process payment and add miles to user
-		kartaCreateDto.setCena(letDto.getCena());
-		HttpEntity<KartaCUDto> request = new HttpEntity<>(kartaCreateDto);
+		HttpEntity<KartaKSDto> request = new HttpEntity<>(kartaKSDto);
 		try {
-			ResponseEntity<KartaCUDto> kartaResponseEntity = serviceCommunicationRestTemplate.exchange(BLURL.KS_URL
-					+ BLURL.KORISNIK_URL + "/" + korisnikId.toString() + BLURL.CC_URL + BLURL.RESERVE_URL, HttpMethod.POST, request, KartaCUDto.class);
+			ResponseEntity<KartaCreateDto> kartaResponseEntity = serviceCommunicationRestTemplate.exchange(BLURL.getKSReserveURL(korisnikId), 
+					HttpMethod.POST, request, KartaCreateDto.class);
 			kartaCreateDto = kartaResponseEntity.getBody();
 		} catch (HttpClientErrorException e) {
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND))
                 throw new NotFoundException("Kreditna kartica nije nađena.");
         }
-		Karta karta = kartaMapper.kartaCreateDtoToKarta(kartaCreateDto);
+		Karta karta = kartaMapper.kartaCreateDtoToKarta(kartaCreateDto, letDto);
 		karta = kartaRepository.save(karta);
 		KartaDto kartaDto = kartaMapper.kartaToKartaDto(karta);
 		return kartaDto;
@@ -85,19 +106,46 @@ public class KartaServiceImpl implements KartaService {
 
 	@Override
 	public void deleteById(Long id) throws EmptyResultDataAccessException {
+		Karta karta = kartaRepository
+				.findById(id)
+				.orElseThrow(() -> new NotFoundException("Rezervacija ne postoji."));
+		// get flight from flight service
+		LetDto letDto = null;
+		try {
+			ResponseEntity<LetDto> letDtoResponseEntity = serviceCommunicationRestTemplate.exchange(BLURL.getLetURL(karta.getLetId()), 
+					HttpMethod.GET, null, LetDto.class);
+			letDto = letDtoResponseEntity.getBody();
+		} catch (HttpClientErrorException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND))
+                throw new NotFoundException("Ovo nije trebalo da se desi.");
+        }
 		kartaRepository.deleteById(id);
+		List<Karta> karte = Collections.singletonList(karta);
+		PovracajNovcaDto povracajNovcaDto = kartaMapper.karteToPNDto(karte, letDto);
 		// javi korisnickom servisu da oduzme milje
+		try {
+			jmsTemplate.convertAndSend(BLURL.AMQUEUE_REFUND, objectMapper.writeValueAsString(povracajNovcaDto));
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
-	public void deleteByLetId(Long letId) {
+	public void deleteByLet(LetDto letDto) {
 		// Ako ne postoji karata to nije problem
 		try {
-			kartaRepository.deleteByLetId(letId);
+			List<Karta> karte = kartaRepository.findByLetId(letDto.getId());
+			kartaRepository.deleteByLetId(letDto.getId());
+			PovracajNovcaDto povracajNovcaDto = kartaMapper.karteToPNDto(karte, letDto);
+			// javi korisnickom servisu da oduzme milje
+			jmsTemplate.convertAndSend(BLURL.AMQUEUE_REFUND, objectMapper.writeValueAsString(povracajNovcaDto));
 		} catch(EmptyResultDataAccessException e) {
 			
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		// javi korisnickom servisu da oduzme milje
 	}
 
 }

@@ -16,8 +16,8 @@ public class Karta {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	@NotNull
-	@Column(name="kreditna_kartica_id")
-	private Long kreditnaKarticaId;
+	@Column(name="korisnik_id")
+	private Long korisnikId;
 	@NotNull
 	@Column(name="let_id")
 	private Long letId;
@@ -33,11 +33,11 @@ public class Karta {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	public Long getKreditnaKarticaId() {
-		return kreditnaKarticaId;
+	public Long getKorisnikId() {
+		return korisnikId;
 	}
-	public void setKreditnaKarticaId(Long kreditnaKarticaId) {
-		this.kreditnaKarticaId = kreditnaKarticaId;
+	public void setKorisnikId(Long korisnikId) {
+		this.korisnikId = korisnikId;
 	}
 	public Long getLetId() {
 		return letId;
