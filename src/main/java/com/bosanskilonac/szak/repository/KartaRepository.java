@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.bosanskilonac.szak.model.Karta;
 
 public interface KartaRepository extends JpaRepository<Karta, Long> {
-	long countByLetId(Long letId);
+	int countByLetId(Long letId);
 	Page<Karta> findByKorisnikId(Long korisnikId, Pageable pageable);
 	List<Karta> findByLetId(Long letId);
 	void deleteByLetId(Long letId);

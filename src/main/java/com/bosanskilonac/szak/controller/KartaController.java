@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bosanskilonac.szak.service.KartaService;
 
 import dto.KartaReserveDto;
+import dto.ListaLetovaDto;
+import dto.RezervacijeLetovaDto;
 import dto.KartaDto;
 import enums.Role;
 import io.swagger.annotations.ApiOperation;
@@ -40,11 +42,12 @@ public class KartaController {
 		return new ResponseEntity<>(kartaService.reserve(id, kartaReserveDto), HttpStatus.CREATED);
 	}
 	
-	@ApiOperation(value = "Vracanje broja rezervisanih mesta za let")
-	@GetMapping("/let")
-	@CheckSecurity(roles = {Role.ROLE_USER, Role.ROLE_ADMIN}, checkOwnership = false)
-	public ResponseEntity<Long> getReservedSeats(@RequestHeader("Authorization") String authorization, @RequestParam(name = "id") Long letId) {
-		return new ResponseEntity<>(kartaService.countByLetId(letId), HttpStatus.OK);
+	@ApiOperation(value = "Vracanje broja rezervisanih mesta za letove")
+	@PostMapping
+	@CheckSecurity(roles = {Role.ROLE_SERVICE}, checkOwnership = false)
+	public ResponseEntity<RezervacijeLetovaDto> getReservedSeats(@RequestHeader("Authorization") String authorization,
+			@RequestBody @Valid ListaLetovaDto listaLetovaDto) {
+		return new ResponseEntity<>(kartaService.countReservations(listaLetovaDto), HttpStatus.OK);
 	}
 	
 	@ApiOperation(value = "Prikaz svih karata za trenutnog korisnika")

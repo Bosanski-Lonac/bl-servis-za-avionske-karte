@@ -27,7 +27,9 @@ import dto.KartaCreateDto;
 import dto.KartaDto;
 import dto.KartaKSDto;
 import dto.LetDto;
+import dto.ListaLetovaDto;
 import dto.PovracajNovcaDto;
+import dto.RezervacijeLetovaDto;
 import exceptions.CustomException;
 import exceptions.InUseException;
 import exceptions.NotFoundException;
@@ -90,8 +92,14 @@ public class KartaServiceImpl implements KartaService {
 	}
 	
 	@Override
-	public Long countByLetId(Long letId) throws EmptyResultDataAccessException {
-		return kartaRepository.countByLetId(letId);
+	public RezervacijeLetovaDto countReservations(ListaLetovaDto listaLetovaDto) {
+		RezervacijeLetovaDto rezervacijeLetovaDto = new RezervacijeLetovaDto();
+		for(Long letId : listaLetovaDto.getLetovi()) {
+			int rezervacije = kartaRepository.countByLetId(letId);
+			rezervacijeLetovaDto.getListaLetRezervacije().put(letId, rezervacije);
+		}
+		return rezervacijeLetovaDto;
+		//return kartaRepository.countByLetId(letId);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.bosanskilonac.szak.mapper;
 
 import java.sql.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -10,7 +11,7 @@ import com.bosanskilonac.szak.model.Karta;
 import dto.KartaReserveDto;
 import dto.LetDto;
 import dto.PovracajNovcaDto;
-import dto.RezervacijeDto;
+import dto.RezervacijeKorisnikaDto;
 import dto.KartaCreateDto;
 import dto.KartaDto;
 import dto.KartaKSDto;
@@ -45,16 +46,17 @@ public class KartaMapper {
 	
 	public PovracajNovcaDto karteToPNDto(List<Karta> karte, LetDto letDto) {
 		PovracajNovcaDto povracajNovcaDto = new PovracajNovcaDto();
+		povracajNovcaDto.setListaKorisnikCena(new HashMap<>());
 		for(Karta karta : karte) {
-			RezervacijeDto rezervacijeDto = povracajNovcaDto.getListaKorisnikCena().get(karta.getId());
-			if(rezervacijeDto == null) {
-				rezervacijeDto = new RezervacijeDto();
-				rezervacijeDto.setBrojRezervacija(1);
-				rezervacijeDto.setCena(karta.getCena());
-				povracajNovcaDto.getListaKorisnikCena().put(karta.getId(), rezervacijeDto);
+			RezervacijeKorisnikaDto rezervacijeKorisnikaDto = povracajNovcaDto.getListaKorisnikCena().get(karta.getId());
+			if(rezervacijeKorisnikaDto == null) {
+				rezervacijeKorisnikaDto = new RezervacijeKorisnikaDto();
+				rezervacijeKorisnikaDto.setBrojRezervacija(1);
+				rezervacijeKorisnikaDto.setCena(karta.getCena());
+				povracajNovcaDto.getListaKorisnikCena().put(karta.getId(), rezervacijeKorisnikaDto);
 			}
 			else {
-				rezervacijeDto.dodajRezervaciju(karta.getCena());
+				rezervacijeKorisnikaDto.dodajRezervaciju(karta.getCena());
 			}
 		}
 		povracajNovcaDto.setLetDto(letDto);

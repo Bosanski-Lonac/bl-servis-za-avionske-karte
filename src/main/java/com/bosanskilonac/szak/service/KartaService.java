@@ -5,12 +5,14 @@ import org.springframework.data.domain.Page;
 
 import dto.KartaReserveDto;
 import dto.LetDto;
+import dto.ListaLetovaDto;
+import dto.RezervacijeLetovaDto;
 import dto.KartaDto;
 import exceptions.CustomException;
 
 public interface KartaService {
 	KartaDto reserve(Long korisnikId, KartaReserveDto kartaCreateDto) throws CustomException;
-	Long countByLetId(Long letId) throws EmptyResultDataAccessException;
+	RezervacijeLetovaDto countReservations(ListaLetovaDto listaLetovaDto);
 	Page<KartaDto> findByKorisnikId(Long korisnikId, Integer brojStranice);
 	void deleteById(Long id) throws EmptyResultDataAccessException;
 	void deleteByLet(LetDto letDto);
