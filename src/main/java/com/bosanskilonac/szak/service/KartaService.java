@@ -11,7 +11,7 @@ import dto.KartaDto;
 import exceptions.CustomException;
 
 public interface KartaService {
-	KartaDto reserve(Long korisnikId, KartaReserveDto kartaCreateDto) throws CustomException;
+	void reserve(Long korisnikId, KartaReserveDto kartaCreateDto) throws CustomException;
 	RezervacijeLetovaDto countReservations(ListaLetovaDto listaLetovaDto);
 	Page<KartaDto> findByKorisnikId(Long korisnikId, Integer brojStranice);
 	void deleteById(Long id) throws EmptyResultDataAccessException;

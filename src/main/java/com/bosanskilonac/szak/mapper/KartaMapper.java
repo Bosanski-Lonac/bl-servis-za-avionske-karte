@@ -1,6 +1,8 @@
 package com.bosanskilonac.szak.mapper;
 
+import java.math.BigDecimal;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,18 +32,22 @@ public class KartaMapper {
 	public KartaKSDto kartaReserveDtoToKartaKSDto(KartaReserveDto kartaReserveDto, LetDto letDto) {
 		KartaKSDto kartaKSDto = new KartaKSDto();
 		kartaKSDto.setKreditnaKarticaId(kartaReserveDto.getKreditnaKarticaId());
-		kartaKSDto.setMilje(letDto.getMilje());
-		kartaKSDto.setCena(letDto.getCena());
+		kartaKSDto.setMilje(letDto.getMilje() * kartaReserveDto.getKolicina());
+		kartaKSDto.setCena(letDto.getCena().multiply(new BigDecimal(kartaReserveDto.getKolicina())));
 		return kartaKSDto;
 	}
 	
-	public Karta kartaCreateDtoToKarta(KartaCreateDto kartaCreateDto, LetDto letDto) {
-		Karta karta = new Karta();
-		karta.setKorisnikId(kartaCreateDto.getKorisnikId());
-		karta.setLetId(letDto.getId());
-		karta.setDatumKupovine(new Date(System.currentTimeMillis()));
-		karta.setCena(kartaCreateDto.getCena());
-		return karta;
+	public List<Karta> kartaCreateDtoToKarta(KartaCreateDto kartaCreateDto, LetDto letDto, int kolicina) {
+		List<Karta> karte = new ArrayList<>();
+		for(int i = 0; i < kolicina; i++) {
+			Karta karta = new Karta();
+			karta.setKorisnikId(kartaCreateDto.getKorisnikId());
+			karta.setLetId(letDto.getId());
+			karta.setDatumKupovine(new Date(System.currentTimeMillis()));
+			karta.setCena(kartaCreateDto.getCena().divide(new BigDecimal(kolicina)));
+			karte.add(karta);
+		}
+		return karte;
 	}
 	
 	public PovracajNovcaDto karteToPNDto(List<Karta> karte, LetDto letDto) {

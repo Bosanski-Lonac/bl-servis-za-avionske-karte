@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -58,7 +59,7 @@ public class KartaServiceImpl implements KartaService {
 	}
 
 	@Override
-	public KartaDto reserve(Long korisnikId, KartaReserveDto kartaReserveDto) throws CustomException {
+	public void reserve(Long korisnikId, KartaReserveDto kartaReserveDto) throws CustomException {
 		// get flight from flight service
 		LetDto letDto = null;
 		try {
@@ -69,7 +70,7 @@ public class KartaServiceImpl implements KartaService {
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND))
                 throw new NotFoundException("Let nije nađen.");
         }
-		if(letDto.getKapacitet() <= kartaRepository.countByLetId(letDto.getId())) {
+		if(letDto.getKapacitet() <= kartaRepository.countByLetId(letDto.getId()) + kartaReserveDto.getKolicina()) {
 			throw new InUseException("Nema dovoljno mesta na letu.");
 		}
 		
@@ -85,10 +86,9 @@ public class KartaServiceImpl implements KartaService {
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND))
                 throw new NotFoundException("Kreditna kartica nije nađena.");
         }
-		Karta karta = kartaMapper.kartaCreateDtoToKarta(kartaCreateDto, letDto);
-		karta = kartaRepository.save(karta);
-		KartaDto kartaDto = kartaMapper.kartaToKartaDto(karta);
-		return kartaDto;
+		List<Karta> karte = kartaMapper.kartaCreateDtoToKarta(kartaCreateDto,
+				letDto, kartaReserveDto.getKolicina());
+		karte = kartaRepository.saveAll(karte);
 	}
 	
 	@Override
@@ -136,6 +136,7 @@ public class KartaServiceImpl implements KartaService {
 	}
 
 	@Override
+	@Transactional
 	public void deleteByLet(LetDto letDto) {
 		// Ako ne postoji karata to nije problem
 		try {

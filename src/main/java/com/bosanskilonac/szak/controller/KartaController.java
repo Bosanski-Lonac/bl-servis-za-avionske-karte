@@ -37,9 +37,10 @@ public class KartaController {
 	@ApiOperation(value = "Rezervisanje karte")
 	@PostMapping("/{id}")
 	@CheckSecurity(roles = {Role.ROLE_USER})
-	public ResponseEntity<KartaDto> reserve(@RequestHeader("Authorization") String authorization, @PathVariable("id") Long id,
+	public ResponseEntity<?> reserve(@RequestHeader("Authorization") String authorization, @PathVariable("id") Long id,
 			@RequestBody @Valid KartaReserveDto kartaReserveDto) {
-		return new ResponseEntity<>(kartaService.reserve(id, kartaReserveDto), HttpStatus.CREATED);
+		kartaService.reserve(id, kartaReserveDto);
+		return new ResponseEntity<>(HttpStatus.CREATED);
 	}
 	
 	@ApiOperation(value = "Vracanje broja rezervisanih mesta za letove")
