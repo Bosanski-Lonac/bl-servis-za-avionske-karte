@@ -99,7 +99,6 @@ public class KartaServiceImpl implements KartaService {
 			rezervacijeLetovaDto.getListaLetRezervacije().put(letId, rezervacije);
 		}
 		return rezervacijeLetovaDto;
-		//return kartaRepository.countByLetId(letId);
 	}
 
 	@Override

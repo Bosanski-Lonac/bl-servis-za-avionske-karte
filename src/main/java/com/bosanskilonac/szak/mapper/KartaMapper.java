@@ -54,12 +54,12 @@ public class KartaMapper {
 		PovracajNovcaDto povracajNovcaDto = new PovracajNovcaDto();
 		povracajNovcaDto.setListaKorisnikCena(new HashMap<>());
 		for(Karta karta : karte) {
-			RezervacijeKorisnikaDto rezervacijeKorisnikaDto = povracajNovcaDto.getListaKorisnikCena().get(karta.getId());
+			RezervacijeKorisnikaDto rezervacijeKorisnikaDto = povracajNovcaDto.getListaKorisnikCena().get(karta.getKorisnikId());
 			if(rezervacijeKorisnikaDto == null) {
 				rezervacijeKorisnikaDto = new RezervacijeKorisnikaDto();
 				rezervacijeKorisnikaDto.setBrojRezervacija(1);
 				rezervacijeKorisnikaDto.setCena(karta.getCena());
-				povracajNovcaDto.getListaKorisnikCena().put(karta.getId(), rezervacijeKorisnikaDto);
+				povracajNovcaDto.getListaKorisnikCena().put(karta.getKorisnikId(), rezervacijeKorisnikaDto);
 			}
 			else {
 				rezervacijeKorisnikaDto.dodajRezervaciju(karta.getCena());
