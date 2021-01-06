@@ -45,7 +45,7 @@ public class KartaController {
 	
 	@ApiOperation(value = "Vracanje broja rezervisanih mesta za letove")
 	@PostMapping
-	@CheckSecurity(roles = {Role.ROLE_SERVICE}, checkOwnership = false)
+	@CheckSecurity(roles = {Role.ROLE_USER, Role.ROLE_ADMIN}, checkOwnership = false)
 	public ResponseEntity<RezervacijeLetovaDto> getReservedSeats(@RequestHeader("Authorization") String authorization,
 			@RequestBody @Valid ListaLetovaDto listaLetovaDto) {
 		return new ResponseEntity<>(kartaService.countReservations(listaLetovaDto), HttpStatus.OK);
