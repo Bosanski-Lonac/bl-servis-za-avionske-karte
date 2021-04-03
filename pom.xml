@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.bosanskilonac</groupId>
     <artifactId>aggregator</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
   <artifactId>szak</artifactId>
   <name>servis-za-avionske-karte</name>
@@ -16,27 +16,11 @@
   		<artifactId>core</artifactId>
 		<version>${project.version}</version>
  	</dependency>
-    <dependency>
-        <groupId>com.h2database</groupId>
-        <artifactId>h2</artifactId>
-        <scope>runtime</scope>
-    </dependency>
-    <!-- Test -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-test</artifactId>
-        <scope>test</scope>
-    </dependency>
-    <!-- Documentation -->
-    <dependency>
-        <groupId>io.springfox</groupId>
-        <artifactId>springfox-swagger-ui</artifactId>
-        <version>${swagger.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>io.springfox</groupId>
-        <artifactId>springfox-swagger2</artifactId>
-        <version>${swagger.version}</version>
-    </dependency>
+ 	<!-- BL-Servis-Core -->
+  	<dependency>
+  		<groupId>com.bosanskilonac</groupId>
+  		<artifactId>servis-core</artifactId>
+  		<version>${project.version}</version>
+ 	</dependency>
   </dependencies>
 </project>

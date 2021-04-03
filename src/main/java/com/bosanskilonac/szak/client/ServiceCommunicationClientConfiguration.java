@@ -13,8 +13,8 @@ import org.springframework.web.client.RestTemplate;
 
 import dto.TokenRequestDto;
 import dto.TokenResponseDto;
-import security.TokenInterceptor;
 import utility.BLURL;
+import utility.TokenInterceptor;
 
 @Configuration
 public class ServiceCommunicationClientConfiguration {
